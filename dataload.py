@@ -1,108 +1,46 @@
-import numpy as np
 import csv
+import numpy as np
+
 def dataLoad(filename):
-    def dataLoad(filename):
-    #Initial variables
-
-    bacName1 = "Salmonella enterica"
-    bacName2 = "Bacillus cereus"
-    bacName3 = "Listeria"
-    bacName4 = "Brochothrix thermosphacta"
-
-    #Loading the collumns with row-values
-    datafile = []
-
-    while True:
-        try:
-            #Check if the user wants to exit
-            if filename == "exit":
-                break
-
-            with open(filename, newline='') as inputfile:
-                for row in csv.reader(inputfile):
-                    datafile.append(row)
-            break
-        except FileNotFoundError:
-            print("")
-            print("File not found, please enter a valid datafile name")
-            filename = inputStr("Please enter the name of your datafile: ")
-
-            continue
-
-    import numpy as np
-
-    data = np.array([[0,0,0]])
-
-    for i in range(len(datafile)):
-        #Clean up the row and create list of strings
-        rowStr = str(datafile[i])
-        rowStr = rowStr.replace("']","")
-        rowStr = rowStr.replace("['","")
-        rowStr = rowStr.split()
-
-        #Checks if the row has 3 collumns
-        if len(rowStr)<3:
-            print("Erroneous line, ValueError at line",i+1,"skipping...")
-            continue
-
-        #Check if row is within the specified conditions
-        while True:
-            try:
-                #Temp
-                if not 10<float(rowStr[0])<60:
-                    print("Erroneous line, ValueError at line",i+1,"skipping...")
-                    skip = True
-                    break
-
-                #Growth
-                elif not float(rowStr[1])>0:
-                    print("Erroneous line, ValueError at line",i+1,"skipping...")
-                    skip = True
-                    break
-
-                #Bacteria
-                elif not 0<int(rowStr[2])<=4:
-                    print("Erroneous line, ValueError at line",i+1,"skipping...")
-                    skip = True
-                    break
-
-                skip = False
-                break
-            except ValueError:
-                print("Erroneous line, ValueError at line",i+1,"skipping...")
-                skip = True
-                break
-
-        #Skip if Error
-        if skip == True:
-            skip = False
-            continue
-
-        #Initial values
-        temp = float(rowStr[0])
-        growth = float(rowStr[1])
-        bacInt = int(rowStr[2])
-
-        #Assigning bacteria names
-        if bacInt == 1:
-            bacStr = bacName1
-
-        elif bacInt ==2:
-            bacStr = bacName2
-
-        elif bacInt ==3:
-            bacStr = bacName3
-
-        elif bacInt ==4:
-            bacStr = bacName4
-
-        #Create arrray of the row values
-        row = np.array([temp,growth,bacStr],dtype=object)
-
-        #Stack in an n*3 matrix
-        data = np.vstack((data,row))
-
-    #Remove initial values
-    data = np.delete(data,0,0)
+    # This function is created to take the data from a given file and inputs it into a N*3 matrix. 
+    #It will also check if the data fulfills the given conditions and will print an error message 
+    # otherwise with the error and the line the error occurs in.
+  
+    
+    
+    data = [0,0,0] # Our initial values.
+    read = True
+    
+    with open(filename, newline='') as inputfile:
+        for line,row in enumerate(csv.reader(inputfile)):
+            
+            arr = np.array(row[0].split(" "), dtype=float) #Creating an array
+            #Only read line if len of the array is 3
+            if len(arr) == 3:                
+                #Checking for errors in our file
+                if ((10 >= arr[0]) or (arr[0] >= 60)): #Temperature
+                    read = False #Do not read line
+                    print("Error: Temperature too low or too high:",line+1,"Skipping")
+                    
+                if (arr[1]<0): #Growth rate
+                    read = False #Skip the line
+                    print("Error: Negative growth rate:",line+1,"Skipping")
+                
+                
+                if ((0 >= arr[2]) or (arr[2] > 4)): #Bacteria
+                    read = False #Skip the line
+                    print("Error: Invalid bacteria type",line+1,'Skipping')
+                
+                if read:
+                    data = np.vstack((data,arr)) #Stacks the data into an N*3 matrix
+                
+                read = True 
+                
+            else:
+                print('Lenght of row not 3', line+1,'Skipping')
+    
+    data = data[1:len(data)] #Remove our data placeholder we creating in the beginning
+    
 
     return data
+print(dataLoad('test.txt'))
